@@ -1,0 +1,33 @@
+﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
+GET http://localhost:5176/
+
+###
+
+GET http://localhost:5176/contracts/1
+
+###
+POST http://localhost:5176/contracts/tenant
+Content-Type: application/json
+
+{
+  "id": "165A",
+  "flat": "1811",
+  "complex": "Mazzaro",
+  "utilityRoom": "160",
+  "garage": "160",
+  "address": "Cr 55 35-75",
+  "price": "$1.500.000",
+  "insurance": "$150.000",
+  "duration": "12 Meses",
+  "startDate": "16 de mayo de 2024",
+  "endDate": "15 de mayo de 2025",
+  "tenantName": "Juan Perez",
+  "tenantId": "C.C. 123456789",
+  "tenantPhone": "3001234567",
+  "tenantEmail": "juanperez@prueba.com",
+  "codebtorName": "Maria Perez",
+  "codebtorId": "C.C. 987654321",
+  "codebtorPhone": "3007654321",
+  "codebtorEmail": "mariaperez@prueba.com",
+  "payDay": 15
+  }
