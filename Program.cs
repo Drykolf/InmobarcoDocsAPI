@@ -11,6 +11,6 @@ if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.MapGet("/", () => "Hello World!");
 app.MapContractsEndpoints().WithOpenApi();
 app.Run();
