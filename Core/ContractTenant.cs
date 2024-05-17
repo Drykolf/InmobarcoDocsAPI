@@ -41,9 +41,6 @@ public class ContractTenant {
     }
 
     public MemoryStream GenerateContract(string templatePath) {
-        string directory = "/Contratos/";
-        Directory.CreateDirectory(directory);
-        string outputDoc = directory + GetContractFileName() + ".docx";
         MemoryStream newDoc = new MemoryStream();
         //Do something with your stream here
         MiniSoftware.MiniWord.SaveAsByTemplate(newDoc, templatePath, tenantData);
