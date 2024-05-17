@@ -3,7 +3,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Configuration.GetValue<string>("Templates:TenantContractTemplate");
+builder.Configuration.GetValue<string>("ConnectionStrings:AzureStorage");
 var app = builder.Build();
 app.Logger.LogInformation("Hello World!");
 

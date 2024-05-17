@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Azure.Storage.Blobs;
+using System.Globalization;
 
 namespace InmobarcoDocsAPI.Core;
 
@@ -39,11 +40,22 @@ public class ContractTenant {
         string fileName = $"{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CARTA DE PRESENTACION INQUILINO";
         return fileName;
     }
+    public async Task<byte[]?> GetTemplate(string connString) {
+        BlobServiceClient blobServiceClient = new(connString);
+        BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("templates");
+        BlobClient blobClient = containerClient.GetBlobClient("0 CTO VIVIENDA INMOBARCO SAS.docx");
+        if (await blobClient.ExistsAsync()) {
+            using MemoryStream ms = new();
+            var response = await blobClient.DownloadToAsync(ms);
+            return ms.ToArray();
+        }
+        return null;
+    }
 
-    public MemoryStream GenerateContract(string templatePath) {
-        MemoryStream newDoc = new MemoryStream();
+    public MemoryStream GenerateContract(byte[] template) {
+        MemoryStream newDoc = new();
         //Do something with your stream here
-        MiniSoftware.MiniWord.SaveAsByTemplate(newDoc, templatePath, tenantData);
+        MiniSoftware.MiniWord.SaveAsByTemplate(newDoc, template, tenantData);
         newDoc.Seek(0, SeekOrigin.Begin);
         return newDoc;
     }
