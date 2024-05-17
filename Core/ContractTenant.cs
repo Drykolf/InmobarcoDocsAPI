@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
 
-namespace InmobarcoDocsAPI.Models;
+namespace InmobarcoDocsAPI.Core;
 
-public class Contract_Tenant {
-    public Contract_Tenant(string id, string flat, string complex, string utilityRoom, string garage, string address, string price, string insurance, string duration,
+public class ContractTenant {
+    public ContractTenant(string id, string flat, string complex, string utilityRoom, string garage, string address, string price, string insurance, string duration,
                             string startDate, string endDate, string tenantName, string tenantId, string tenantPhone, string tenantEmail,
                             string codebtorName, string codebtorId, string codebtorPhone, string codebtorEmail, int payDay) {
         this.tenantData = new Dictionary<string, object>() {
@@ -39,12 +39,12 @@ public class Contract_Tenant {
         string fileName = $"{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CARTA DE PRESENTACION INQUILINO";
         return fileName;
     }
-    public MemoryStream GenerateContract() {
+
+    public MemoryStream GenerateContract(string templatePath) {
         string directory = "/Contratos/";
         Directory.CreateDirectory(directory);
         string outputDoc = directory + GetContractFileName() + ".docx";
         MemoryStream newDoc = new MemoryStream();
-        string templatePath = "0 CTO VIVIENDA INMOBARCO SAS.docx";
         //Do something with your stream here
         MiniSoftware.MiniWord.SaveAsByTemplate(newDoc, templatePath, tenantData);
         newDoc.Seek(0, SeekOrigin.Begin);
