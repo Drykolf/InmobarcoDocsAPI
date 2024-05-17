@@ -7,10 +7,11 @@ builder.Configuration.GetValue<string>("Templates:TenantContractTemplate");
 var app = builder.Build();
 app.Logger.LogInformation("Hello World!");
 
-if (app.Environment.IsDevelopment()) {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment()) {}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.MapGet("/", () => "Hello World!");
 app.MapContractsEndpoints().WithOpenApi();
 app.Run();
