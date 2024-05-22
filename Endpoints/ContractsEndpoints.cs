@@ -1,11 +1,15 @@
-﻿using InmobarcoDocsAPI.Core;
+﻿using InmobarcoDocsAPI.Config;
+using InmobarcoDocsAPI.Core;
 using InmobarcoDocsAPI.Dtos;
 
 
 namespace InmobarcoDocsAPI.Endpoints;
 
 public static class ContractsEndpoints {
-    public static RouteGroupBuilder MapContractsEndpoints(this WebApplication app) {
+    // Settings object
+    private static Settings? _settings;
+    public static RouteGroupBuilder MapContractsEndpoints(this WebApplication app, Settings settings) {
+        _settings = settings;
         var group = app.MapGroup("/contracts").WithParameterValidation();
         group.MapGet("/", () => "Contracts");
         group.MapPost("/tenant", async (CreateContractTenantDto newContract, IConfiguration config) => {
