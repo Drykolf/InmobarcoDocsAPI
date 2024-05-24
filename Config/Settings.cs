@@ -6,7 +6,8 @@ public class Settings {
     public string? ClientSecret { get; set; } //Microsoft App Secret
     public string? TenantId { get; set; } //Organization ID
     public string? driveId { get; set; }//Documents Library ID
-    public string? itemId { get; set; }//Documents Folder ID for the API to use
+    public string? apiFolderId { get; set; }//Documents Folder ID for the API to use
+    public string? templatesFolderId { get; set; }//Templates Folder ID 
     public static Settings LoadSettings() {
         // Load settings
         IConfiguration config = new ConfigurationBuilder()

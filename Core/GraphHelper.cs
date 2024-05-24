@@ -59,12 +59,51 @@ public class GraphHelper {
         });
     }
 
+    public async static Task<DriveItemCollectionResponse> GetTemplatesAsync() {
+        // Ensure client isn't null
+        _ = _appClient ??
+            throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
+
+        var result = await _appClient.Drives[_settings.driveId].Items[_settings.templatesFolderId].Children.GetAsync((requestConfiguration) => {
+            requestConfiguration.QueryParameters.Select = new string[] { "id", "name" }; ;
+        });
+        return result;
+    }
+
+    public async static Task<Stream> GetFile(string fileId) {
+        // Ensure client isn't null
+        _ = _appClient ??
+            throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
+
+        var result = await _appClient.Drives[_settings.driveId].Items[fileId].Content.GetAsync();
+        return result;
+    }
+
+    public async static Task<DriveItem> CreateFolder(string folderName) {
+        // Ensure client isn't null
+        _ = _appClient ??
+            throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
+
+        var requestBody = new DriveItem {
+            Name = folderName,
+            Folder = new Folder {
+            },
+            AdditionalData = new Dictionary<string, object>{{
+                "@microsoft.graph.conflictBehavior" , "rename"},
+            },
+        };
+        var result = await _appClient.Drives[_settings.driveId].Items[_settings.apiFolderId].Children.PostAsync(requestBody);
+        return result;
+    }
+
     public async static Task<DriveItemCollectionResponse> MakeGraphCallAsync() {
         // Ensure client isn't null
         _ = _appClient ??
             throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
 
-        var result = await _appClient.Drives[_settings.driveId].Items[_settings.itemId].Children.GetAsync();
+        var result = await _appClient.Drives[_settings.driveId].Items[_settings.templatesFolderId].Children.GetAsync((requestConfiguration) => {
+            requestConfiguration.QueryParameters.Select = new string[] { "id", "name" }; ;
+        });
         return result;
     }
 }

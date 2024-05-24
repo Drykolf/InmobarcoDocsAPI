@@ -5,6 +5,11 @@ GET http://localhost:5176/contracts
 GET http://localhost:5176/testing/drives
 
 ###
+GET http://localhost:5176/testing/download
+
+###
+POST http://localhost:5176/testing/folder?folderName=prueba3
+###
 
 GET http://localhost:5176/contracts/1
 
