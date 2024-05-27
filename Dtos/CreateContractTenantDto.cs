@@ -1,6 +1,7 @@
 ﻿namespace InmobarcoDocsAPI.Dtos;
 public record class CreateContractTenantDto(
     string id,
+    string? version,
     string flat,
     string complex,
     string utilityRoom,

@@ -3,13 +3,15 @@
 namespace InmobarcoDocsAPI.Core;
 
 public class ContractTenant {
-    public ContractTenant(string id, string flat, string complex, string utilityRoom, string garage, string address, string price, string insurance, string duration,
+    private string? version;
+    public Dictionary<string, object> tenantData { get; set; }
+    public ContractTenant(string id, string? version, string flat, string complex, string utilityRoom, string garage, string address, string price, string insurance, string duration,
                             string startDate, string endDate, string tenantName, string tenantId, string tenantPhone, string tenantEmail,
                             string codebtorName, string codebtorId, string codebtorPhone, string codebtorEmail, int payDay) {
         this.tenantData = new Dictionary<string, object>() {
             ["CTO"] = id,
             ["APTO"] = flat,
-            ["CONJUNTO"] = complex,
+            ["CONJUNTO"] = complex.ToUpper(),
             ["UTIL"] = utilityRoom,
             ["PARQUEO"] = garage,
             ["DIRECCION"] = address,
@@ -29,24 +31,27 @@ public class ContractTenant {
             ["FECHA"] = DateTime.Now.ToString("dd/MMMM/yyyy", CultureInfo.CreateSpecificCulture("es-MX")),
             ["DIA_PAGO"] = payDay
         };
+        this.version = version;
     }
-    public Dictionary<string, object> tenantData { get; set; }
+    public string GetFolderName() {
+        return $"{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CTO {tenantData["CTO"] as string}";
+    }
     public string GetContractFileName() {
-        string fileName = $"{tenantData["CTO"] as string}-{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CTO VIVIENDA INMOBARCO SAS";
+        string fileName = $"{tenantData["CTO"] as string}{version}-{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CTO VIVIENDA INMOBARCO SAS.docx";
         return fileName;
     }
     public string GetLetterFileName() {
-        string fileName = $"{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CARTA DE PRESENTACION INQUILINO";
+        string fileName = $"{tenantData["APTO"] as string} {tenantData["CONJUNTO"] as string} CARTA DE PRESENTACION INQUILINO.docx";
         return fileName;
     }
 
-    public MemoryStream GenerateContract(Stream template) {
-        MemoryStream ms = new();
+    public byte[] GenerateContract(string templateId) {
+        using Stream template = GraphHelper.GetFileAsync(templateId).Result;
+        using MemoryStream ms = new();
         template.CopyTo(ms);
-        MemoryStream newDoc = new();
-        //Do something with your stream here
+        using MemoryStream newDoc = new();
         MiniSoftware.MiniWord.SaveAsByTemplate(newDoc, ms.ToArray(), tenantData);
         newDoc.Seek(0, SeekOrigin.Begin);
-        return newDoc;
+        return newDoc.ToArray();
     }
 }

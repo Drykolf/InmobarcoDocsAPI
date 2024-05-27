@@ -18,7 +18,8 @@ POST http://localhost:5176/contracts/tenant
 Content-Type: application/json
 
 {
-  "id": "165A",
+  "id": "165",
+  "version": "A",
   "flat": "1811",
   "complex": "Mazzaro",
   "utilityRoom": "160",

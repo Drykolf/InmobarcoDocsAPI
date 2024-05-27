@@ -1,9 +1,11 @@
 ﻿namespace InmobarcoDocsAPI.Core;
-using Azure.Core;
 using Azure.Identity;
 using InmobarcoDocsAPI.Config;
 using Microsoft.Graph;
+using Microsoft.Graph.Drives.Item.Items.Item.Copy;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Http.HttpClientLibrary.Middleware.Options;
+using System.IO;
 
 public class GraphHelper {
     // Settings object
@@ -12,7 +14,8 @@ public class GraphHelper {
     private static ClientSecretCredential? _clientSecretCredential;
     // Client configured with app-only authentication
     private static GraphServiceClient? _appClient;
-
+    public static Dictionary<string, string> templates { get; set; } = [];
+    private static string baseFolder = "FOLDERS";
     public static void InitializeGraphForAppOnlyAuth(Settings settings) {
         _settings = settings;
 
@@ -33,30 +36,7 @@ public class GraphHelper {
                 // configured on the app registration
                 new[] { "https://graph.microsoft.com/.default" });
         }
-    }
-    public static async Task<string> GetAppOnlyTokenAsync() {
-        // Ensure credential isn't null
-        _ = _clientSecretCredential ??
-            throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
-
-        // Request token with given scopes
-        var context = new TokenRequestContext(new[] { "https://graph.microsoft.com/.default" });
-        var response = await _clientSecretCredential.GetTokenAsync(context);
-        return response.Token;
-    }
-    public static Task<UserCollectionResponse?> GetUsersAsync() {
-        // Ensure client isn't null
-        _ = _appClient ??
-            throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
-
-        return _appClient.Users.GetAsync((config) => {
-            // Only request specific properties
-            config.QueryParameters.Select = new[] { "displayName", "id", "mail" };
-            // Get at most 25 results
-            config.QueryParameters.Top = 25;
-            // Sort by display name
-            config.QueryParameters.Orderby = new[] { "displayName" };
-        });
+        _ = GetTemplatesAsync();
     }
 
     public async static Task<DriveItemCollectionResponse> GetTemplatesAsync() {
@@ -67,10 +47,35 @@ public class GraphHelper {
         var result = await _appClient.Drives[_settings.driveId].Items[_settings.templatesFolderId].Children.GetAsync((requestConfiguration) => {
             requestConfiguration.QueryParameters.Select = new string[] { "id", "name" }; ;
         });
+        templates.Clear();
+        foreach (var item in result.Value) {
+            if (item.Name == null || item.Id == null) continue;
+            templates.Add(item.Name, item.Id);
+        }
         return result;
     }
-
-    public async static Task<Stream> GetFile(string fileId) {
+    public async static Task<DriveItemCollectionResponse> GetContractFoldersAsync(string? folderId = "") {
+        // Ensure client isn't null
+        _ = _appClient ??
+            throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
+        if (folderId == "") folderId = _settings.apiFolderId;
+        var result = await _appClient.Drives[_settings.driveId].Items[folderId].Children.GetAsync((requestConfiguration) => {
+            requestConfiguration.QueryParameters.Select = new string[] { "id", "name" }; ;
+        });
+        return result;
+    }
+    public async static Task<string> GetItemIdAsync(string itemName, string folderId = "") {
+        var items = await GetContractFoldersAsync(folderId);
+        string? itemId = "";
+        foreach (var item in items.Value) {
+            if (item.Name.ToUpper() == itemName.ToUpper()) {
+                itemId = item.Id;
+                break;
+            }
+        }
+        return itemId;
+    }
+    public async static Task<Stream> GetFileAsync(string fileId) {
         // Ensure client isn't null
         _ = _appClient ??
             throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
@@ -78,32 +83,42 @@ public class GraphHelper {
         var result = await _appClient.Drives[_settings.driveId].Items[fileId].Content.GetAsync();
         return result;
     }
-
-    public async static Task<DriveItem> CreateFolder(string folderName) {
+    public async static Task<string> CreateFolderAsync(string newFolderName) {
         // Ensure client isn't null
         _ = _appClient ??
             throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
-
-        var requestBody = new DriveItem {
-            Name = folderName,
-            Folder = new Folder {
+        var requestBody = new CopyPostRequestBody {
+            ParentReference = new ItemReference {
+                DriveId = _settings.driveId,
+                Id = _settings.apiFolderId,
             },
-            AdditionalData = new Dictionary<string, object>{{
-                "@microsoft.graph.conflictBehavior" , "rename"},
-            },
+            Name = newFolderName.ToUpper(),
         };
-        var result = await _appClient.Drives[_settings.driveId].Items[_settings.apiFolderId].Children.PostAsync(requestBody);
+        var headersInspectionHandlerOption = new HeadersInspectionHandlerOption() {
+            InspectResponseHeaders = true // specific you wish to collect reponse headers
+        };
+        string? baseFolderId = "";
+        templates.TryGetValue(baseFolder, out baseFolderId);
+        await _appClient.Drives[_settings.driveId].Items[baseFolderId].Copy.PostAsync(requestBody, requestConfiguration => requestConfiguration.Options.Add(headersInspectionHandlerOption));
+        string result = await GetItemIdAsync(newFolderName);
         return result;
     }
-
-    public async static Task<DriveItemCollectionResponse> MakeGraphCallAsync() {
+    public async static Task<DriveItem> SaveFile(string folderId, MemoryStream file, string fileName) {
         // Ensure client isn't null
         _ = _appClient ??
             throw new System.NullReferenceException("Graph has not been initialized for app-only auth");
-
-        var result = await _appClient.Drives[_settings.driveId].Items[_settings.templatesFolderId].Children.GetAsync((requestConfiguration) => {
-            requestConfiguration.QueryParameters.Select = new string[] { "id", "name" }; ;
-        });
+        string? newFileId = await GetItemIdAsync(fileName, folderId);
+        var requestBody = new CopyPostRequestBody {
+            ParentReference = new ItemReference {
+                DriveId = _settings.driveId,
+                Id = folderId,
+            },
+            Name = fileName,
+        };
+        if (newFileId == "") await _appClient.Drives[_settings.driveId].Items[templates.ElementAt(1).Value].Copy.PostAsync(requestBody); // Copy a file
+        newFileId = await GetItemIdAsync(fileName, folderId);
+        var result = await _appClient.Drives[_settings.driveId].Items[newFileId].Content.PutAsync(file);// Update the file with the actual content
         return result;
     }
+
 }
