@@ -20,4 +20,4 @@ public record class CreateContractTenantDto(
     string codebtorId,
     string codebtorPhone,
     string codebtorEmail,
-    int payDay);
+    string payDay);

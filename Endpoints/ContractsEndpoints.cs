@@ -10,6 +10,7 @@ public static class ContractsEndpoints {
     // Settings object
     private static Settings? _settings;
     private static string tenantContractTemplate = "CTO VIVIENDA INMOBARCO SAS.docx";
+    private static string tenantLetterTemplate = "CARTA PRESENTACION ARRENDATARIO.docx";
     public static RouteGroupBuilder MapContractsEndpoints(this WebApplication app, Settings settings) {
         _settings = settings;
         var group = app.MapGroup("/contracts").WithParameterValidation();
@@ -22,11 +23,17 @@ public static class ContractsEndpoints {
                                             newContract.codebtorPhone, newContract.codebtorEmail, newContract.payDay);
             string fileType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
             string fileName = contract.GetContractFileName();
+            string letterName = contract.GetLetterFileName();
             string folderName = contract.GetFolderName();
-            string templateId = GraphHelper.templates[tenantContractTemplate];
+            string tenantTemplateId = GraphHelper.templates[tenantContractTemplate];
+            string letterTemplateId = GraphHelper.templates[tenantLetterTemplate];
             string folderId = await GraphHelper.GetItemIdAsync(folderName);
             if (folderId == "") folderId = await GraphHelper.CreateFolderAsync(folderName);
-            var contractFile = contract.GenerateContract(templateId);
+            var letterFile = contract.GenerateLetter(letterTemplateId);
+            using MemoryStream ms1 = new(letterFile);
+            await GraphHelper.SaveFile(folderId, ms1, letterName);
+            ms1.Dispose();
+            var contractFile = contract.GenerateContract(tenantTemplateId);
             using MemoryStream ms = new(contractFile);
             await GraphHelper.SaveFile(folderId, ms, fileName);
             ms.Dispose();

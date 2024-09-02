@@ -38,5 +38,33 @@ Content-Type: application/json
   "codebtorId": "C.C. 987654321",
   "codebtorPhone": "3007654321",
   "codebtorEmail": "mariaperez@prueba.com",
-  "payDay": 15
+  "payDay": "15"
+  }
+
+  ###
+POST http://localhost:5176/contracts/tenant
+Content-Type: application/json
+
+{
+  "id": "162",
+  "version": "A",
+  "flat": "1503",
+  "complex": "CANARIAS",
+  "utilityRoom": "106",
+  "garage": "106",
+  "address": "CR 44 N 62 S-33",
+  "price": "$2.400.000",
+  "insurance": "N/A (SURA)",
+  "duration": "12 MESES 15 DIAS",
+  "startDate": "1 de julio de 2024",
+  "endDate": "14 de julio de 2025",
+  "tenantName": "RUBEN DARIO LAZARO SOTO",
+  "tenantId": "C.C. 1.152.216.866",
+  "tenantPhone": "3104791009",
+  "tenantEmail": "dariolazaro@gmail.com",
+  "codebtorName": "JIMMY ANDRES VILLADA PEREZ",
+  "codebtorId": "C.C. 1.088.334.253",
+  "codebtorPhone": "3017887454",
+  "codebtorEmail": "jimmyviipe@gmail.com",
+  "payDay": "15"
   }
